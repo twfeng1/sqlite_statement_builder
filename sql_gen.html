@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+<style>
+    textarea {
+        font-size: 18px!important;
+    }
+</style>
+
+<head>
+    <title>SQLITE Index/View Statement Generator</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js" integrity="sha256-qXBd/EfAdjOA2FGrGAG+b3YBn2tn5A6bhz+LSgYD96k=" crossorigin="anonymous"></script>
+
+
+    <!--
+    <link rel="stylesheet" href="js/bootstrap.min.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/lodash.min.js" integrity="sha256-qXBd/EfAdjOA2FGrGAG+b3YBn2tn5A6bhz+LSgYD96k=" crossorigin="anonymous"></script>
+-->
+</head>
+<body>
+
+<nav class="navbar navbar-expand-sm bg-light">
+
+    <!-- Links -->
+    <ul class="navbar-nav">
+        <h3>Wei's SQLite Index/View Statements Generator </h3>
+    </ul>
+
+</nav>
+
+<div class="container-fluid ">
+
+    <!--<p></p>-->
+
+    <div class="form-group">
+        <label for="comment">Generate SQLITE Index / View Statement from Field List in JSON Array/Object format</label>
+
+        <div class="row">
+        <div class="col-md-6">
+        <div class="input-group mb-3 ">
+            <div class="input-group-prepend">
+                <span class=" input-group-text w-200" id="SQL_Table_Name_Field">SQL Table Name     </span>
+            </div>
+            <input id="SQL_Table_Name" type="text" class="form-control" placeholder="e.g PCAP" aria-label="e.g PCAP" aria-describedby="basic-addon1" value="pcap">
+        </div>
+
+        <div class="input-group mb-3" >
+            <div class="input-group-prepend">
+                <span class=" input-group-text" id="SQL_Column_Name_Label">SQL Column Name</span>
+            </div>
+            <input id="SQL_Column_Name" type="text" class="form-control" placeholder="e.g PCAP" aria-label="e.g PCAP" aria-describedby="basic-addon1" value="doc">
+        </div>
+
+        <div class="input-group mb-3 " >
+            <div class="input-group-prepend">
+                <span class=" input-group-text " >Field List JSON Array String</span>
+            </div>
+            <textarea id='Field_List_Textarea'   rows="15" class="col-sm-12 "  id="comment1">["frame_number","frame_time_sec","frame_time_nsec","frame_length","DstMac","SrcMac","Type","IPHeaderLength","IPTotalLength","ip_id","TTL","Protocol","HeaderChecksum","ip_src","ip_dst","tcp_srcport","tcp_dstport","tcp_seq_raw","tcp_ack_raw","TCPHeaderLength","tcp_flags","URG","ACK","PSH","RST","SYN","FIN","WindowSize","Checksum","wHWTICKS","tcpPayloadLength","t8","t9","t35","t49","t56","t34","t52","t98","t108","t141","t10","t50","t96","t1137","t112","t148","t33","t58","t1","t11","t37","t21","t38","t40","t44","t47","t528","t54","t55","t48","t22","t59","t60","t75","t100","t1031","t167","t15","t142","t129","t198","t526","t527","t10011","t453","t448","t452","t447","t2376","t17","t150","t18","t39","t107","t460","t200","t541","t205","t207","t461","t18211","t151","t14","t6","t442","t1028","t18216","t10553","t18220","t18221","t18223","t454","t455","t456","t1057","t16999","t1724","t2593","t2594","t2595","t16116","t16558","t16561","t16605","t16607","t16117","t16612","t30","t18218","t18226","t18232","t32","t31","t880","t20","t9996","t120","t114","t103"]
+
+            </textarea>
+        </div>
+
+        </div>
+
+            <div class="col-md-6">
+               <button id='generate_action' type="button" class="btn btn-primary mb-1 h-100">Generate SQL Statements </button>
+            </div>
+
+        </div>
+
+
+    <br>
+        <div class="row">
+
+                <div class="card-body">
+                    <textarea id='result_textarea'   rows="15" class="col-sm-12" ></textarea>
+                </div>
+
+
+
+        </div>
+
+         <br>
+
+
+
+
+
+    </div>
+
+    <div id='alert_div' class="d-none fixed-bottom bottom-0 end-0 col-sm-12 float-right alert alert-primary alert-dismissible show" role="alert">
+
+        Loading results...
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <button type="button" class=" close " data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+
+
+</body>
+</html>
+
+<script>
+
+
+
+    String.prototype.toObjectKeys= function() {
+        try {
+
+             let obj = JSON.parse(this);
+
+             if ($.isPlainObject(obj) ) return Object.keys(obj);
+            if (Array.isArray(obj)) return obj;
+            return [];
+        }catch(e){
+            return [];
+        }
+    };
+
+    String.prototype.replaceAll = function(target, replacement) {
+        return this.split(target).join(replacement);
+    };
+
+
+
+
+    $( "#generate_action" ).on( "click", async function() {
+
+        $('#'+'alert_div').toggleClass('d-none');
+        setTimeout( ()=>{ $('#'+'alert_div').toggleClass('d-none'); },100);
+
+        //console.log(JSON.stringify(wHosts))
+      //  let url ="/ping/"+ wHosts.join(',')
+       // let rows= await fetchData(url);
+
+        let sql_statements=   generateIndexStatements(
+            $('#Field_List_Textarea').val().toObjectKeys(),
+            $('#SQL_Table_Name').val() ,
+            $('#SQL_Column_Name').val()
+        );
+
+        $('#'+'result_textarea').val(sql_statements.join('\n') )
+
+    });
+
+
+    function generateIndexStatements ( fields =[],table_name ='table1', idx_fieldname= 'f1'){
+        if (fields.length ===0) return ["Invalid Field List"];
+        // fields = ["frame_number","frame_time_sec","frame_time_nsec","frame_length","DstMac","SrcMac","Type","IPHeaderLength","IPTotalLength","ip_id","TTL","Protocol","HeaderChecksum","ip_src","ip_dst","tcp_srcport","tcp_dstport","tcp_seq_raw","tcp_ack_raw","TCPHeaderLength","tcp_flags","URG","ACK","PSH","RST","SYN","FIN","WindowSize","Checksum","wHWTICKS","tcpPayloadLength","t8","t9","t35","t49","t56","t34","t52","t98","t108","t141","t10","t50","t96","t1137","t112","t148","t33","t58","t1","t11","t37","t21","t38","t40","t44","t47","t528","t54","t55","t48","t22","t59","t60","t75","t100","t1031","t167","t15","t142","t129","t198","t526","t527","t10011","t453","t448","t452","t447","t2376","t17","t150","t18","t39","t107","t460","t200","t541","t205","t207","t461","t18211","t151","t14","t6","t442","t1028","t18216","t10553","t18220","t18221","t18223","t454","t455","t456","t1057","t16999","t1724","t2593","t2594","t2595","t16116","t16558","t16561","t16605","t16607","t16117","t16612","t30","t18218","t18226","t18232","t32","t31","t880","t20","t9996","t120","t114","t103"]
+        fields = fields.sort();
+
+         table_name = table_name.toString().trim().replaceAll(' ','_');
+         idx_fieldname= idx_fieldname.toString().trim().replaceAll(' ','_');
+
+        let sqls_arr = fields.map(e=>'CREATE INDEX '+['idx',e.toString()].join('_')+' ON '+table_name+'(json_extract("'+idx_fieldname+'","$.'+e.toString()+'"));')
+
+         // return sqls_arr.join('\n');
+        sqls_arr.push('----------------');
+       let view=
+            'CREATE VIEW "'+table_name+'_view" AS '+
+            'select ' +
+            fields.map(e=> 'json_extract('+idx_fieldname+',"$.'+e.toString()+'") as "'+e.toString()+'" ').join(',\n')
+            +'\nfrom '+table_name +';';
+
+          sqls_arr.push(view);
+
+          return sqls_arr;
+    }
+
+
+
+
+
+
+    function now() {
+        var d = new Date();
+        var datestring = d.getDate().toString().padStart(2,'0')  + "-" + (d.getMonth()+1).toString().padStart(2,'0') + "-" + d.getFullYear() + " " +
+            d.getHours().toString().padStart(2,'0') + ":"
+            + d.getMinutes().toString().padStart(2,'0')+ ":"
+            //+ ( (d.getSeconds().toString().length ===1) ? "0"+d.getSeconds() : d.getSeconds() )  +"."
+            + d.getSeconds().toString().padStart(2,'0')  +"."
+            + d.getMilliseconds().toString().padStart(3,'0') ;
+
+        let  zone = ' (' + d.toString().split('(').slice(-1);
+        return datestring + zone ;
+    }
+
+
+
+
+
+</script>
+
+
+<script>
+
+    /**
+    fetchData("serverlist.json").then((result)=>{
+        $('#wHosts_textarea').val(result.join('\n'));
+    })
+
+    **/
+
+
+
+</script>
