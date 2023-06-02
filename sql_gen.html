@@ -166,7 +166,7 @@
          table_name = table_name.toString().trim().replaceAll(' ','_');
          idx_fieldname= idx_fieldname.toString().trim().replaceAll(' ','_');
 
-        let sqls_arr = fields.map(e=>'CREATE INDEX '+['idx',e.toString()].join('_')+' ON '+table_name+'(json_extract("'+idx_fieldname+'","$.'+e.toString()+'"));')
+        let sqls_arr = fields.map(e=>'CREATE INDEX '+['idx',e.toString().replaceAll('.','_')].join('_')+' ON '+table_name+'(json_extract("'+idx_fieldname+'","$.'+e.toString()+'"));')
 
          // return sqls_arr.join('\n');
         sqls_arr.push('----------------');
