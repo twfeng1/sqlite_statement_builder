@@ -173,7 +173,7 @@
        let view=
             'CREATE VIEW "'+table_name+'_view" AS '+
             'select ' +
-            fields.map(e=> 'json_extract('+idx_fieldname+',"$.'+e.toString()+'") as "'+e.toString()+'" ').join(',\n')
+            fields.map(e=> 'json_extract('+idx_fieldname+',"$.'+e.toString()+'") as "'+ e.toString().split(' ').join('_') +'" ').join(',\n')
             +'\nfrom '+table_name +';';
 
           sqls_arr.push(view);
