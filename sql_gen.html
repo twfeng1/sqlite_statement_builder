@@ -174,7 +174,8 @@
             'CREATE VIEW "'+table_name+'_view" AS '+
             'select ' +
             fields.map(e=> 'json_extract('+idx_fieldname+',"$.'+e.toString()+'") as "'+
-                e.toString().split(' ').join('_').split('/').join('_') + '" ').join(',\n')
+                e.toString().split(' ').join('_').split('/').join('_').split('\n').join('_')  + 
+                '" ').join(',\n')
             +'\nfrom '+table_name +';';
 
           sqls_arr.push(view);
